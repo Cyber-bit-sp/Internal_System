@@ -14,6 +14,11 @@ import {
   Typography,
 } from "@mui/material";
 
+import {
+  NavLink,
+  Outlet,
+} from "react-router-dom";
+
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
@@ -25,43 +30,33 @@ const drawerWidth = 260;
 
 const navigationItems = [
   {
-    id: "dashboard",
+    path: "/dashboard",
     label: "Dashboard",
     icon: <DashboardOutlinedIcon />,
   },
   {
-    id: "users",
+    path: "/users",
     label: "User Management",
     icon: <PeopleOutlineRoundedIcon />,
   },
   {
-    id: "teams",
+    path: "/teams",
     label: "Team Management",
     icon: <GroupsOutlinedIcon />,
   },
   {
-    id: "daily-plans",
+    path: "/daily-plans",
     label: "Daily Plans",
     icon: <CalendarTodayOutlinedIcon />,
   },
   {
-    id: "performance",
+    path: "/performance",
     label: "Performance",
     icon: <AssessmentOutlinedIcon />,
   },
 ];
 
-function AppLayout({
-  children,
-  activePage = "users",
-  onNavigate,
-}) {
-  function handleNavigate(pageId) {
-    if (typeof onNavigate === "function") {
-      onNavigate(pageId);
-    }
-  }
-
+function AppLayout() {
   return (
     <Box
       sx={{
@@ -148,7 +143,8 @@ function AppLayout({
 
           <Divider
             sx={{
-              borderColor: "rgba(255, 255, 255, 0.08)",
+              borderColor:
+                "rgba(255, 255, 255, 0.08)",
             }}
           />
 
@@ -175,75 +171,68 @@ function AppLayout({
             </Typography>
 
             <List disablePadding>
-              {navigationItems.map((item) => {
-                const isActive = activePage === item.id;
+              {navigationItems.map((item) => (
+                <ListItemButton
+                  key={item.path}
+                  component={NavLink}
+                  to={item.path}
+                  sx={{
+                    minHeight: 46,
+                    mb: 0.5,
+                    borderRadius: 2,
+                    color: "#d0d5dd",
 
-                return (
-                  <ListItemButton
-                    key={item.id}
-                    selected={isActive}
-                    onClick={() => handleNavigate(item.id)}
+                    "& .MuiListItemIcon-root": {
+                      color: "#98a2b3",
+                    },
+
+                    "&.active": {
+                      backgroundColor: "#2563eb",
+                      color: "#ffffff",
+                    },
+
+                    "&.active .MuiListItemIcon-root": {
+                      color: "#ffffff",
+                    },
+
+                    "&.active:hover": {
+                      backgroundColor: "#1d4ed8",
+                    },
+
+                    "&:hover": {
+                      backgroundColor:
+                        "rgba(255, 255, 255, 0.06)",
+                    },
+                  }}
+                >
+                  <ListItemIcon
                     sx={{
-                      minHeight: 46,
-                      mb: 0.5,
-                      borderRadius: 2,
-                      color: isActive
-                        ? "#ffffff"
-                        : "#d0d5dd",
-
-                      "& .MuiListItemIcon-root": {
-                        color: isActive
-                          ? "#ffffff"
-                          : "#98a2b3",
-                      },
-
-                      "&.Mui-selected": {
-                        backgroundColor: "#2563eb",
-                      },
-
-                      "&.Mui-selected:hover": {
-                        backgroundColor: "#1d4ed8",
-                      },
-
-                      "&:hover": {
-                        backgroundColor:
-                          "rgba(255, 255, 255, 0.06)",
-                      },
+                      minWidth: 40,
                     }}
                   >
-                    <ListItemIcon
-                      sx={{
-                        minWidth: 40,
-                      }}
-                    >
-                      {item.icon}
-                    </ListItemIcon>
+                    {item.icon}
+                  </ListItemIcon>
 
-                    <ListItemText
-                      primary={item.label}
-                      slotProps={{
-                        primary: {
-                          sx: {
-                            fontSize: 14,
-                            fontWeight: isActive ? 600 : 500,
-                          },
+                  <ListItemText
+                    primary={item.label}
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontSize: 14,
+                          fontWeight: 500,
                         },
-                      }}
-                    />
-                  </ListItemButton>
-                );
-              })}
+                      },
+                    }}
+                  />
+                </ListItemButton>
+              ))}
             </List>
           </Box>
 
-          <Box
-            sx={{
-              p: 1.5,
-            }}
-          >
+          <Box sx={{ p: 1.5 }}>
             <ListItemButton
-              selected={activePage === "settings"}
-              onClick={() => handleNavigate("settings")}
+              component={NavLink}
+              to="/settings"
               sx={{
                 mb: 1,
                 borderRadius: 2,
@@ -253,16 +242,16 @@ function AppLayout({
                   color: "#98a2b3",
                 },
 
-                "&.Mui-selected": {
+                "&.active": {
                   backgroundColor: "#2563eb",
                   color: "#ffffff",
                 },
 
-                "&.Mui-selected .MuiListItemIcon-root": {
+                "&.active .MuiListItemIcon-root": {
                   color: "#ffffff",
                 },
 
-                "&.Mui-selected:hover": {
+                "&.active:hover": {
                   backgroundColor: "#1d4ed8",
                 },
 
@@ -296,7 +285,8 @@ function AppLayout({
             <Divider
               sx={{
                 mb: 1.5,
-                borderColor: "rgba(255, 255, 255, 0.08)",
+                borderColor:
+                  "rgba(255, 255, 255, 0.08)",
               }}
             />
 
@@ -362,7 +352,8 @@ function AppLayout({
             zIndex: 10,
             borderBottom: "1px solid",
             borderColor: "divider",
-            backgroundColor: "rgba(255, 255, 255, 0.96)",
+            backgroundColor:
+              "rgba(255, 255, 255, 0.96)",
             backdropFilter: "blur(12px)",
           }}
         >
@@ -418,7 +409,7 @@ function AppLayout({
             minHeight: "calc(100vh - 72px)",
           }}
         >
-          {children}
+          <Outlet />
         </Box>
       </Box>
     </Box>

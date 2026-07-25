@@ -14,10 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import {
-  NavLink,
-  Outlet,
-} from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
@@ -61,8 +58,9 @@ function AppLayout() {
     <Box
       sx={{
         display: "flex",
-        minWidth: 1180,
+        width: "100%",
         minHeight: "100vh",
+        overflow: "hidden",
         backgroundColor: "background.default",
       }}
     >
@@ -94,11 +92,7 @@ function AppLayout() {
               px: 2.5,
             }}
           >
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1.5}
-            >
+            <Stack direction="row" alignItems="center" spacing={1.5}>
               <Box
                 sx={{
                   display: "flex",
@@ -143,8 +137,7 @@ function AppLayout() {
 
           <Divider
             sx={{
-              borderColor:
-                "rgba(255, 255, 255, 0.08)",
+              borderColor: "rgba(255, 255, 255, 0.08)",
             }}
           />
 
@@ -200,8 +193,7 @@ function AppLayout() {
                     },
 
                     "&:hover": {
-                      backgroundColor:
-                        "rgba(255, 255, 255, 0.06)",
+                      backgroundColor: "rgba(255, 255, 255, 0.06)",
                     },
                   }}
                 >
@@ -256,8 +248,7 @@ function AppLayout() {
                 },
 
                 "&:hover": {
-                  backgroundColor:
-                    "rgba(255, 255, 255, 0.06)",
+                  backgroundColor: "rgba(255, 255, 255, 0.06)",
                 },
               }}
             >
@@ -285,8 +276,7 @@ function AppLayout() {
             <Divider
               sx={{
                 mb: 1.5,
-                borderColor:
-                  "rgba(255, 255, 255, 0.08)",
+                borderColor: "rgba(255, 255, 255, 0.08)",
               }}
             />
 
@@ -340,8 +330,9 @@ function AppLayout() {
 
       <Box
         sx={{
-          width: `calc(100% - ${drawerWidth}px)`,
+          flex: 1,
           minWidth: 0,
+          overflow: "hidden",
         }}
       >
         <AppBar
@@ -352,8 +343,7 @@ function AppLayout() {
             zIndex: 10,
             borderBottom: "1px solid",
             borderColor: "divider",
-            backgroundColor:
-              "rgba(255, 255, 255, 0.96)",
+            backgroundColor: "rgba(255, 255, 255, 0.96)",
             backdropFilter: "blur(12px)",
           }}
         >
@@ -381,8 +371,7 @@ function AppLayout() {
                   fontSize: 12,
                 }}
               >
-                Manage your organization and employee
-                performance
+                Manage your organization and employee performance
               </Typography>
             </Box>
 
@@ -407,6 +396,7 @@ function AppLayout() {
           component="main"
           sx={{
             minHeight: "calc(100vh - 72px)",
+            overflowX: "hidden",
           }}
         >
           <Outlet />

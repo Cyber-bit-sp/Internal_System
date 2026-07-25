@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import UsersPage from "./pages/UsersPage";
 import TeamsPage from "./pages/TeamsPage";
+import DailyPlansPage from "./pages/DailyPlansPage";
 
 function App() {
   return (
@@ -17,15 +18,7 @@ function App() {
         <Route path="/teams" element={<TeamsPage />} />
       </Route>
 
-      <Route
-        path="/daily-plans"
-        element={
-          <PlaceholderPage
-            title="Daily Plans"
-            description="Plan work, record progress, and track daily completion."
-          />
-        }
-      />
+      <Route path="/daily-plans" element={<DailyPlansPage />} />
 
       <Route
         path="/performance"

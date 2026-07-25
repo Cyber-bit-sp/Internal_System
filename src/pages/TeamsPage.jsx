@@ -290,27 +290,63 @@ function TeamsPage() {
   }
 
   function handleUpdateTeam(updatedTeam) {
+    let nextTeam = updatedTeam;
+    let nextUsers = userList;
+
+    if (updatedTeam.managerId) {
+      const managerId = String(updatedTeam.managerId);
+
+      const currentMemberIds = Array.isArray(updatedTeam.memberIds)
+        ? updatedTeam.memberIds.map(String)
+        : [];
+
+      if (!currentMemberIds.includes(managerId)) {
+        nextTeam = {
+          ...updatedTeam,
+          memberIds: [...currentMemberIds, managerId],
+          memberCount: currentMemberIds.length + 1,
+        };
+      }
+
+      nextUsers = userList.map((user) => {
+        if (String(user.id) !== managerId) {
+          return user;
+        }
+
+        return {
+          ...user,
+          teamId: updatedTeam.id,
+          teamName: updatedTeam.name,
+          team: updatedTeam.name,
+        };
+      });
+    }
+
+    setUserList(nextUsers);
+
     setTeamList((currentTeams) =>
-      currentTeams.map((team) =>
-        team.id === updatedTeam.id ? updatedTeam : team,
-      ),
+      currentTeams.map((team) => (team.id === nextTeam.id ? nextTeam : team)),
     );
 
     setSelectedTeam((currentSelectedTeam) =>
-      currentSelectedTeam?.id === updatedTeam.id
-        ? updatedTeam
-        : currentSelectedTeam,
+      currentSelectedTeam?.id === nextTeam.id ? nextTeam : currentSelectedTeam,
     );
 
     setEditingTeam(null);
 
-    showNotification(`${updatedTeam.name} was updated successfully.`);
+    showNotification(`${nextTeam.name} was updated successfully.`);
   }
 
   function handleResetTeams() {
     resetStoredTeams();
     setEditingTeam(null);
     setStatusTeam(null);
+    setMembersTeam(null);
+    setUserList(
+      initialUsers.map((user) => ({
+        ...user,
+      })),
+    );
 
     setTeamList(
       initialTeams.map((team) => ({
@@ -430,6 +466,7 @@ function TeamsPage() {
         <TeamTable teams={filteredTeams} onViewTeam={setSelectedTeam} />
         <TeamDetailsDialog
           team={selectedTeam}
+          users={userList}
           isOpen={Boolean(selectedTeam)}
           onClose={() => setSelectedTeam(null)}
           onEdit={(team) => {
@@ -441,6 +478,15 @@ function TeamsPage() {
             setSelectedTeam(null);
             setMembersTeam(team);
           }}
+        />
+
+        <TeamMembersDialog
+          team={membersTeam}
+          users={userList}
+          teams={teamList}
+          isOpen={Boolean(membersTeam)}
+          onClose={() => setMembersTeam(null)}
+          onSave={handleSaveTeamMembers}
         />
 
         <TeamStatusDialog

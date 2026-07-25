@@ -22,7 +22,6 @@ import {
 
 import CheckBoxOutlinedIcon from "@mui/icons-material/CheckBoxOutlined";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import PersonAddAltOutlinedIcon from "@mui/icons-material/PersonAddAltOutlined";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
@@ -34,9 +33,7 @@ function TeamMembersDialog({
   onClose,
   onSave,
 }) {
-  const [selectedMemberIds, setSelectedMemberIds] =
-    useState([]);
-
+  const [selectedMemberIds, setSelectedMemberIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [department, setDepartment] = useState("all");
 
@@ -45,12 +42,22 @@ function TeamMembersDialog({
       return;
     }
 
-    setSelectedMemberIds(
-      Array.isArray(team.memberIds)
-        ? team.memberIds.map(String)
-        : [],
-    );
+    const savedMemberIds = Array.isArray(team.memberIds)
+      ? team.memberIds.map(String)
+      : [];
 
+    const managerId =
+      team.managerId !== null && team.managerId !== undefined
+        ? String(team.managerId)
+        : null;
+
+    // The manager must always remain a member of the team.
+    const initialMemberIds =
+      managerId && !savedMemberIds.includes(managerId)
+        ? [...savedMemberIds, managerId]
+        : savedMemberIds;
+
+    setSelectedMemberIds(initialMemberIds);
     setSearchTerm("");
     setDepartment("all");
   }, [team, isOpen]);
@@ -97,16 +104,25 @@ function TeamMembersDialog({
     return null;
   }
 
+  const managerId =
+    team.managerId !== null && team.managerId !== undefined
+      ? String(team.managerId)
+      : null;
+
   const selectedIdSet = new Set(selectedMemberIds);
 
-  const selectableVisibleUsers = filteredUsers.filter(
-    (user) =>
-      user.status === "Active" ||
-      selectedIdSet.has(String(user.id)),
-  );
+  const selectableVisibleUsers = filteredUsers.filter((user) => {
+    const userId = String(user.id);
+    const isManager = managerId === userId;
 
-  const visibleSelectableIds = selectableVisibleUsers.map(
-    (user) => String(user.id),
+    return (
+      !isManager &&
+      (user.status === "Active" || selectedIdSet.has(userId))
+    );
+  });
+
+  const visibleSelectableIds = selectableVisibleUsers.map((user) =>
+    String(user.id),
   );
 
   const allVisibleSelected =
@@ -121,14 +137,19 @@ function TeamMembersDialog({
     ) && !allVisibleSelected;
 
   function handleToggleUser(user) {
-    if (
-      user.status !== "Active" &&
-      !selectedIdSet.has(String(user.id))
-    ) {
+    const userId = String(user.id);
+    const isTeamManager = userId === managerId;
+    const isSelected = selectedIdSet.has(userId);
+
+    // The manager cannot be removed.
+    if (isTeamManager && isSelected) {
       return;
     }
 
-    const userId = String(user.id);
+    // Inactive employees cannot be newly assigned.
+    if (user.status !== "Active" && !isSelected) {
+      return;
+    }
 
     setSelectedMemberIds((currentIds) => {
       if (currentIds.includes(userId)) {
@@ -153,18 +174,34 @@ function TeamMembersDialog({
         });
       }
 
+      // Always preserve the team manager.
+      if (managerId) {
+        currentSet.add(managerId);
+      }
+
       return [...currentSet];
     });
   }
 
   function handleClearAll() {
-    setSelectedMemberIds([]);
+    if (!managerId) {
+      setSelectedMemberIds([]);
+      return;
+    }
+
+    setSelectedMemberIds([managerId]);
   }
 
   function handleSave() {
+    const nextMemberIds = [...new Set(selectedMemberIds.map(String))];
+
+    if (managerId && !nextMemberIds.includes(managerId)) {
+      nextMemberIds.push(managerId);
+    }
+
     onSave?.({
       team,
-      memberIds: selectedMemberIds,
+      memberIds: nextMemberIds,
     });
   }
 
@@ -231,8 +268,7 @@ function TeamMembersDialog({
                   fontSize: 14,
                 }}
               >
-                {team.name} · {selectedMemberIds.length}{" "}
-                selected
+                {team.name} · {selectedMemberIds.length} selected
               </Typography>
             </Box>
           </Stack>
@@ -258,8 +294,8 @@ function TeamMembersDialog({
         {!Array.isArray(team.memberIds) && (
           <Alert severity="info" sx={{ mb: 2.5 }}>
             This team previously stored only a member count.
-            Select the individual employees who belong to
-            this team, then save the assignment.
+            Select the individual employees who belong to this
+            team, then save the assignment.
           </Alert>
         )}
 
@@ -346,6 +382,7 @@ function TeamMembersDialog({
               <Checkbox
                 checked={allVisibleSelected}
                 indeterminate={someVisibleSelected}
+                disabled={visibleSelectableIds.length === 0}
                 onChange={handleToggleAllVisible}
                 slotProps={{
                   input: {
@@ -379,7 +416,11 @@ function TeamMembersDialog({
             <Button
               size="small"
               color="inherit"
-              disabled={selectedMemberIds.length === 0}
+              disabled={
+                managerId
+                  ? selectedMemberIds.length <= 1
+                  : selectedMemberIds.length === 0
+              }
               onClick={handleClearAll}
             >
               Clear selection
@@ -422,12 +463,20 @@ function TeamMembersDialog({
                 const isInactive =
                   user.status !== "Active";
 
+                const isTeamManager =
+                  userId === managerId;
+
                 const assignedTeam =
                   findAssignedTeam(user, teams);
 
                 const assignedElsewhere =
                   assignedTeam &&
-                  assignedTeam.id !== team.id;
+                  String(assignedTeam.id) !==
+                    String(team.id);
+
+                const cannotSelect =
+                  isTeamManager ||
+                  (isInactive && !isSelected);
 
                 return (
                   <Box
@@ -443,10 +492,9 @@ function TeamMembersDialog({
                       gap: 2,
                       px: 2,
                       py: 1.5,
-                      cursor:
-                        isInactive && !isSelected
-                          ? "not-allowed"
-                          : "pointer",
+                      cursor: cannotSelect
+                        ? "default"
+                        : "pointer",
                       opacity:
                         isInactive && !isSelected
                           ? 0.55
@@ -461,18 +509,22 @@ function TeamMembersDialog({
                       borderColor: "divider",
 
                       "&:hover": {
-                        backgroundColor:
-                          isInactive && !isSelected
-                            ? "background.paper"
-                            : isSelected
-                              ? "rgba(37, 99, 235, 0.08)"
-                              : "#f9fafb",
+                        backgroundColor: cannotSelect
+                          ? isSelected
+                            ? "rgba(37, 99, 235, 0.05)"
+                            : "background.paper"
+                          : isSelected
+                            ? "rgba(37, 99, 235, 0.08)"
+                            : "#f9fafb",
                       },
                     }}
                   >
                     <Checkbox
                       checked={isSelected}
-                      disabled={isInactive && !isSelected}
+                      disabled={
+                        isTeamManager ||
+                        (isInactive && !isSelected)
+                      }
                       onChange={() =>
                         handleToggleUser(user)
                       }
@@ -560,7 +612,14 @@ function TeamMembersDialog({
                     </Box>
 
                     <Box sx={{ minWidth: 0 }}>
-                      {assignedElsewhere ? (
+                      {isTeamManager ? (
+                        <Chip
+                          size="small"
+                          label="Team Manager"
+                          color="primary"
+                          variant="outlined"
+                        />
+                      ) : assignedElsewhere ? (
                         <Chip
                           size="small"
                           label={`Currently: ${assignedTeam.name}`}
@@ -570,7 +629,8 @@ function TeamMembersDialog({
                             maxWidth: "100%",
                           }}
                         />
-                      ) : assignedTeam?.id === team.id ? (
+                      ) : String(assignedTeam?.id) ===
+                        String(team.id) ? (
                         <Chip
                           size="small"
                           label="Current member"
@@ -580,7 +640,9 @@ function TeamMembersDialog({
                       ) : isInactive ? (
                         <Chip
                           size="small"
-                          label={user.status || "Inactive"}
+                          label={
+                            user.status || "Inactive"
+                          }
                           variant="outlined"
                         />
                       ) : (
@@ -608,7 +670,8 @@ function TeamMembersDialog({
           }}
         >
           Selecting an employee who belongs to another team
-          will move that employee to {team.name}.
+          will move that employee to {team.name}. The team
+          manager cannot be removed from their team.
         </Alert>
       </DialogContent>
 
@@ -671,7 +734,9 @@ function getUserName(user) {
 
 function getInitials(user) {
   const firstName =
-    user.firstName || user.name?.split(" ")[0] || "";
+    user.firstName ||
+    user.name?.split(" ")[0] ||
+    "";
 
   const lastName =
     user.lastName ||
@@ -687,10 +752,14 @@ function getInitials(user) {
 }
 
 function findAssignedTeam(user, teams) {
-  if (user.teamId !== null && user.teamId !== undefined) {
+  if (
+    user.teamId !== null &&
+    user.teamId !== undefined
+  ) {
     const teamById = teams.find(
       (team) =>
-        String(team.id) === String(user.teamId),
+        String(team.id) ===
+        String(user.teamId),
     );
 
     if (teamById) {
@@ -705,13 +774,17 @@ function findAssignedTeam(user, teams) {
     return null;
   }
 
+  const normalizedTeamName = String(
+    savedTeamName,
+  ).toLowerCase();
+
   return (
     teams.find(
       (team) =>
-        team.name.toLowerCase() ===
-          String(savedTeamName).toLowerCase() ||
-        team.code.toLowerCase() ===
-          String(savedTeamName).toLowerCase(),
+        String(team.name).toLowerCase() ===
+          normalizedTeamName ||
+        String(team.code).toLowerCase() ===
+          normalizedTeamName,
     ) || null
   );
 }

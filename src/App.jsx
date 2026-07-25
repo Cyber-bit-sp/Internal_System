@@ -16,9 +16,8 @@ function App() {
         <Route path="/users" element={<UsersPage />} />
 
         <Route path="/teams" element={<TeamsPage />} />
+        <Route path="/daily-plans" element={<DailyPlansPage />} />
       </Route>
-
-      <Route path="/daily-plans" element={<DailyPlansPage />} />
 
       <Route
         path="/performance"

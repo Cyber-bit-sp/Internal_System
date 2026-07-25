@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Box,
@@ -24,6 +20,14 @@ import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
 import AppSnackbar from "../components/common/AppSnackbar";
 import DailyPlanFilters from "../components/dailyPlans/DailyPlanFilters";
 import DailyPlanTable from "../components/dailyPlans/DailyPlanTable";
+import CreateDailyPlanDialog from "../components/dailyPlans/CreateDailyPlanDialog";
+import DailyPlanDetailsDialog from "../components/dailyPlans/DailyPlanDetailsDialog";
+
+import { users as initialUsers } from "../data/users";
+import { teams as initialTeams } from "../data/teams";
+
+import { loadUsers } from "../utils/userStorage";
+import { loadTeams } from "../utils/teamStorage";
 
 import { dailyPlans as initialDailyPlans } from "../data/dailyPlans";
 
@@ -33,12 +37,7 @@ import {
   saveDailyPlans,
 } from "../utils/dailyPlanStorage";
 
-function SummaryCard({
-  title,
-  value,
-  icon,
-  helperText,
-}) {
+function SummaryCard({ title, value, icon, helperText }) {
   return (
     <Card>
       <CardContent
@@ -50,11 +49,7 @@ function SummaryCard({
           },
         }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2}
-        >
+        <Stack direction="row" alignItems="center" spacing={2}>
           <Box
             sx={{
               display: "flex",
@@ -71,7 +66,7 @@ function SummaryCard({
             {icon}
           </Box>
 
-          <Box sx={{ minWidth: 0 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography
               color="text.secondary"
               sx={{
@@ -117,24 +112,26 @@ function DailyPlansPage() {
     loadDailyPlans(initialDailyPlans),
   );
 
-  const [searchTerm, setSearchTerm] =
-    useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [status, setStatus] =
-    useState("all");
+  const [userList] = useState(() => loadUsers(initialUsers));
 
-  const [team, setTeam] =
-    useState("all");
+  const [teamList] = useState(() => loadTeams(initialTeams));
 
-  const [planDate, setPlanDate] =
-    useState("");
+  const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
 
-  const [notification, setNotification] =
-    useState({
-      open: false,
-      message: "",
-      severity: "success",
-    });
+  const [status, setStatus] = useState("all");
+
+  const [team, setTeam] = useState("all");
+
+  const [planDate, setPlanDate] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
+  const [notification, setNotification] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
 
   useEffect(() => {
     saveDailyPlans(planList);
@@ -142,18 +139,12 @@ function DailyPlansPage() {
 
   const teamOptions = useMemo(() => {
     return [
-      ...new Set(
-        planList
-          .map((plan) => plan.teamName)
-          .filter(Boolean),
-      ),
+      ...new Set(planList.map((plan) => plan.teamName).filter(Boolean)),
     ].sort();
   }, [planList]);
 
   const filteredPlans = useMemo(() => {
-    const normalizedSearch = searchTerm
-      .trim()
-      .toLowerCase();
+    const normalizedSearch = searchTerm.trim().toLowerCase();
 
     return planList.filter((plan) => {
       const matchesSearch =
@@ -171,44 +162,23 @@ function DailyPlansPage() {
           .toLowerCase()
           .includes(normalizedSearch);
 
-      const matchesStatus =
-        status === "all" ||
-        plan.status === status;
+      const matchesStatus = status === "all" || plan.status === status;
 
-      const matchesTeam =
-        team === "all" ||
-        plan.teamName === team;
+      const matchesTeam = team === "all" || plan.teamName === team;
 
-      const matchesDate =
-        planDate === "" ||
-        plan.planDate === planDate;
+      const matchesDate = planDate === "" || plan.planDate === planDate;
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesTeam &&
-        matchesDate
-      );
+      return matchesSearch && matchesStatus && matchesTeam && matchesDate;
     });
-  }, [
-    planList,
-    searchTerm,
-    status,
-    team,
-    planDate,
-  ]);
+  }, [planList, searchTerm, status, team, planDate]);
 
   const completedCount = useMemo(() => {
-    return planList.filter(
-      (plan) => plan.status === "Completed",
-    ).length;
+    return planList.filter((plan) => plan.status === "Completed").length;
   }, [planList]);
 
   const inProgressCount = useMemo(() => {
     return planList.filter(
-      (plan) =>
-        plan.status === "In Progress" ||
-        plan.status === "Draft",
+      (plan) => plan.status === "In Progress" || plan.status === "Draft",
     ).length;
   }, [planList]);
 
@@ -218,14 +188,11 @@ function DailyPlansPage() {
     }
 
     const totalProgress = planList.reduce(
-      (total, plan) =>
-        total + Number(plan.progress || 0),
+      (total, plan) => total + Number(plan.progress || 0),
       0,
     );
 
-    return Math.round(
-      totalProgress / planList.length,
-    );
+    return Math.round(totalProgress / planList.length);
   }, [planList]);
 
   function clearFilters() {
@@ -235,10 +202,7 @@ function DailyPlansPage() {
     setPlanDate("");
   }
 
-  function showNotification(
-    message,
-    severity = "success",
-  ) {
+  function showNotification(message, severity = "success") {
     setNotification({
       open: true,
       message,
@@ -247,12 +211,10 @@ function DailyPlansPage() {
   }
 
   function closeNotification() {
-    setNotification(
-      (currentNotification) => ({
-        ...currentNotification,
-        open: false,
-      }),
-    );
+    setNotification((currentNotification) => ({
+      ...currentNotification,
+      open: false,
+    }));
   }
 
   function handleResetPlans() {
@@ -264,45 +226,68 @@ function DailyPlansPage() {
       })),
     );
 
+    setIsCreatePlanOpen(false);
+    setSelectedPlan(null);
     clearFilters();
 
+    showNotification("Demo daily plan data was reset successfully.", "info");
+  }
+
+  function handleCreatePlan(newPlan) {
+    setPlanList((currentPlans) => [newPlan, ...currentPlans]);
+
+    setIsCreatePlanOpen(false);
+
     showNotification(
-      "Demo daily plan data was reset successfully.",
-      "info",
+      `${newPlan.employeeName}'s daily plan was created successfully.`,
     );
   }
 
   return (
     <Box sx={{ py: 5 }}>
-      <Container maxWidth="xl">
+      <Container
+        maxWidth={false}
+        sx={{
+          width: "100%",
+          px: 3,
+        }}
+      >
         <Stack
           direction="row"
           alignItems="flex-start"
           justifyContent="space-between"
           spacing={2}
-          sx={{ mb: 3.5 }}
+          sx={{
+            mb: 3.5,
+            minWidth: 0,
+          }}
         >
           <Box>
-            <Typography variant="h4">
-              Daily Plans
-            </Typography>
+            <Typography variant="h4">Daily Plans</Typography>
 
             <Typography
               color="text.secondary"
-              sx={{ mt: 1 }}
+              sx={{
+                mt: 1,
+                maxWidth: 680,
+              }}
             >
-              Record daily tasks, monitor progress, and
-              review employee completion.
+              Record daily tasks, monitor progress, and review employee
+              completion.
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={1}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              flexShrink: 0,
+            }}
+          >
             <Button
               color="inherit"
               variant="outlined"
-              startIcon={
-                <RestartAltRoundedIcon />
-              }
+              startIcon={<RestartAltRoundedIcon />}
               onClick={handleResetPlans}
             >
               Reset Demo Data
@@ -311,9 +296,7 @@ function DailyPlansPage() {
             <Button
               variant="contained"
               startIcon={<AddRoundedIcon />}
-              onClick={() =>
-                console.log("Create daily plan")
-              }
+              onClick={() => setIsCreatePlanOpen(true)}
             >
               Create Plan
             </Button>
@@ -323,8 +306,7 @@ function DailyPlansPage() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(4, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
             gap: 2.25,
             mb: 3,
           }}
@@ -339,9 +321,7 @@ function DailyPlansPage() {
           <SummaryCard
             title="Completed"
             value={completedCount}
-            icon={
-              <CheckCircleOutlineRoundedIcon />
-            }
+            icon={<CheckCircleOutlineRoundedIcon />}
             helperText="Plans marked as completed"
           />
 
@@ -382,15 +362,33 @@ function DailyPlansPage() {
             fontWeight: 500,
           }}
         >
-          Showing {filteredPlans.length} of{" "}
-          {planList.length} plans
+          Showing {filteredPlans.length} of {planList.length} plans
         </Typography>
 
-        <DailyPlanTable
-          plans={filteredPlans}
-          onViewPlan={(plan) =>
-            console.log("View plan:", plan)
-          }
+        <DailyPlanTable plans={filteredPlans} onViewPlan={setSelectedPlan} />
+
+        <DailyPlanDetailsDialog
+          plan={selectedPlan}
+          isOpen={Boolean(selectedPlan)}
+          onClose={() => setSelectedPlan(null)}
+          onEdit={(plan) => {
+            console.log("Edit plan:", plan);
+          }}
+          onSubmit={(plan) => {
+            console.log("Submit plan:", plan);
+          }}
+          onComplete={(plan) => {
+            console.log("Complete plan:", plan);
+          }}
+        />
+
+        <CreateDailyPlanDialog
+          isOpen={isCreatePlanOpen}
+          onClose={() => setIsCreatePlanOpen(false)}
+          onCreatePlan={handleCreatePlan}
+          existingPlans={planList}
+          users={userList}
+          teams={teamList}
         />
 
         <AppSnackbar

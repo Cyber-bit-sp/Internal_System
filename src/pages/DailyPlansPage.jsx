@@ -22,6 +22,9 @@ import DailyPlanFilters from "../components/dailyPlans/DailyPlanFilters";
 import DailyPlanTable from "../components/dailyPlans/DailyPlanTable";
 import CreateDailyPlanDialog from "../components/dailyPlans/CreateDailyPlanDialog";
 import DailyPlanDetailsDialog from "../components/dailyPlans/DailyPlanDetailsDialog";
+import EditDailyPlanDialog from "../components/dailyPlans/EditDailyPlanDialog";
+import SubmitDailyPlanDialog from "../components/dailyPlans/SubmitDailyPlanDialog";
+import ManagerReviewDialog from "../components/dailyPlans/ManagerReviewDialog";
 
 import { users as initialUsers } from "../data/users";
 import { teams as initialTeams } from "../data/teams";
@@ -123,9 +126,12 @@ function DailyPlansPage() {
   const [status, setStatus] = useState("all");
 
   const [team, setTeam] = useState("all");
+  const [reviewingPlan, setReviewingPlan] = useState(null);
 
   const [planDate, setPlanDate] = useState("");
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [submittingPlan, setSubmittingPlan] = useState(null);
 
   const [notification, setNotification] = useState({
     open: false,
@@ -228,6 +234,9 @@ function DailyPlansPage() {
 
     setIsCreatePlanOpen(false);
     setSelectedPlan(null);
+    setEditingPlan(null);
+    setSubmittingPlan(null);
+    setReviewingPlan(null);
     clearFilters();
 
     showNotification("Demo daily plan data was reset successfully.", "info");
@@ -240,6 +249,87 @@ function DailyPlansPage() {
 
     showNotification(
       `${newPlan.employeeName}'s daily plan was created successfully.`,
+    );
+  }
+
+  function handleUpdatePlan(updatedPlan) {
+    setPlanList((currentPlans) =>
+      currentPlans.map((plan) =>
+        plan.id === updatedPlan.id ? updatedPlan : plan,
+      ),
+    );
+
+    setSelectedPlan((currentSelectedPlan) =>
+      currentSelectedPlan?.id === updatedPlan.id
+        ? updatedPlan
+        : currentSelectedPlan,
+    );
+
+    setEditingPlan(null);
+
+    showNotification(
+      `${updatedPlan.employeeName}'s daily plan was updated successfully.`,
+    );
+  }
+
+  function handleSubmitPlan(updatedPlan) {
+    setPlanList((currentPlans) =>
+      currentPlans.map((plan) =>
+        plan.id === updatedPlan.id ? updatedPlan : plan,
+      ),
+    );
+
+    setSelectedPlan((currentSelectedPlan) =>
+      currentSelectedPlan?.id === updatedPlan.id
+        ? updatedPlan
+        : currentSelectedPlan,
+    );
+
+    setSubmittingPlan(null);
+
+    showNotification(
+      `${updatedPlan.employeeName}'s daily plan was submitted successfully.`,
+    );
+  }
+
+  function updatePlanInState(updatedPlan) {
+    setPlanList((currentPlans) =>
+      currentPlans.map((plan) =>
+        plan.id === updatedPlan.id ? updatedPlan : plan,
+      ),
+    );
+
+    setSelectedPlan((currentSelectedPlan) =>
+      currentSelectedPlan?.id === updatedPlan.id
+        ? updatedPlan
+        : currentSelectedPlan,
+    );
+  }
+
+  function handleApprovePlan(updatedPlan) {
+    updatePlanInState(updatedPlan);
+    setReviewingPlan(null);
+
+    showNotification(`${updatedPlan.employeeName}'s daily plan was approved.`);
+  }
+
+  function handleReturnPlan(updatedPlan) {
+    updatePlanInState(updatedPlan);
+    setReviewingPlan(null);
+
+    showNotification(
+      `${updatedPlan.employeeName}'s daily plan was returned for revision.`,
+      "warning",
+    );
+  }
+
+  function handleCompletePlan(updatedPlan) {
+    updatePlanInState(updatedPlan);
+    setReviewingPlan(null);
+
+    showNotification(
+      `${updatedPlan.employeeName}'s daily plan was completed.`,
+      "success",
     );
   }
 
@@ -372,14 +462,40 @@ function DailyPlansPage() {
           isOpen={Boolean(selectedPlan)}
           onClose={() => setSelectedPlan(null)}
           onEdit={(plan) => {
-            console.log("Edit plan:", plan);
+            setSelectedPlan(null);
+            setEditingPlan(plan);
           }}
           onSubmit={(plan) => {
-            console.log("Submit plan:", plan);
+            setSelectedPlan(null);
+            setSubmittingPlan(plan);
           }}
-          onComplete={(plan) => {
-            console.log("Complete plan:", plan);
+          onReview={(plan) => {
+            setSelectedPlan(null);
+            setReviewingPlan(plan);
           }}
+        />
+
+        <ManagerReviewDialog
+          plan={reviewingPlan}
+          isOpen={Boolean(reviewingPlan)}
+          onClose={() => setReviewingPlan(null)}
+          onApprove={handleApprovePlan}
+          onReturn={handleReturnPlan}
+          onComplete={handleCompletePlan}
+        />
+
+        <SubmitDailyPlanDialog
+          plan={submittingPlan}
+          isOpen={Boolean(submittingPlan)}
+          onClose={() => setSubmittingPlan(null)}
+          onConfirm={handleSubmitPlan}
+        />
+
+        <EditDailyPlanDialog
+          plan={editingPlan}
+          isOpen={Boolean(editingPlan)}
+          onClose={() => setEditingPlan(null)}
+          onUpdatePlan={handleUpdatePlan}
         />
 
         <CreateDailyPlanDialog

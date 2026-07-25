@@ -64,6 +64,7 @@ function DailyPlanFilters({
         <MenuItem value="Submitted">Submitted</MenuItem>
 
         <MenuItem value="Completed">Completed</MenuItem>
+        <MenuItem value="Approved">Approved</MenuItem>
       </TextField>
 
       <TextField

@@ -21,11 +21,15 @@ const statusStyles = {
     backgroundColor: "#ecfdf3",
     borderColor: "#abefc6",
   },
+  Approved: {
+    color: "#5925dc",
+    backgroundColor: "#f4f3ff",
+    borderColor: "#d9d6fe",
+  },
 };
 
 function DailyPlanStatusBadge({ status }) {
-  const style =
-    statusStyles[status] || statusStyles.Draft;
+  const style = statusStyles[status] || statusStyles.Draft;
 
   return (
     <Chip

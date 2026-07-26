@@ -6,6 +6,7 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import UsersPage from "./pages/UsersPage";
 import TeamsPage from "./pages/TeamsPage";
 import DailyPlansPage from "./pages/DailyPlansPage";
+import PerformancePage from "./pages/PerformancePage";
 
 function App() {
   return (
@@ -17,17 +18,8 @@ function App() {
 
         <Route path="/teams" element={<TeamsPage />} />
         <Route path="/daily-plans" element={<DailyPlansPage />} />
+        <Route path="/performance" element={<PerformancePage />} />
       </Route>
-
-      <Route
-        path="/performance"
-        element={
-          <PlaceholderPage
-            title="Performance Evaluation"
-            description="Review employee progress, consistency, and manager feedback."
-          />
-        }
-      />
 
       <Route
         path="/settings"

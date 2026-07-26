@@ -21,6 +21,15 @@ import AppSnackbar from "../components/common/AppSnackbar";
 import PerformanceFilters from "../components/performance/PerformanceFilters";
 import PerformanceTable from "../components/performance/PerformanceTable";
 import PerformanceEvaluationDetailsDialog from "../components/performance/PerformanceEvaluationDetailsDialog";
+import CreatePerformanceEvaluationDialog from "../components/performance/CreatePerformanceEvaluationDialog";
+import EditPerformanceEvaluationDialog from "../components/performance/EditPerformanceEvaluationDialog";
+import SubmitPerformanceEvaluationDialog from "../components/performance/SubmitPerformanceEvaluationDialog";
+import { users as initialUsers } from "../data/users";
+import { teams as initialTeams } from "../data/teams";
+import { dailyPlans as initialDailyPlans } from "../data/dailyPlans";
+import { loadUsers } from "../utils/userStorage";
+import { loadTeams } from "../utils/teamStorage";
+import { loadDailyPlans } from "../utils/dailyPlanStorage";
 
 import { performanceEvaluations as initialEvaluations } from "../data/performanceEvaluations";
 
@@ -105,13 +114,23 @@ function PerformancePage() {
     loadPerformanceEvaluations(initialEvaluations),
   );
 
+  const [userList] = useState(() => loadUsers(initialUsers));
+
+  const [teamList] = useState(() => loadTeams(initialTeams));
+
+  const [dailyPlanList] = useState(() => loadDailyPlans(initialDailyPlans));
+
+  const [isCreateEvaluationOpen, setIsCreateEvaluationOpen] = useState(false);
+
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
 
   const [status, setStatus] = useState("all");
+  const [submittingEvaluation, setSubmittingEvaluation] = useState(null);
 
   const [team, setTeam] = useState("all");
+  const [editingEvaluation, setEditingEvaluation] = useState(null);
 
   const [reviewPeriod, setReviewPeriod] = useState("all");
 
@@ -244,10 +263,60 @@ function PerformancePage() {
 
     clearFilters();
     setSelectedEvaluation(null);
+    setIsCreateEvaluationOpen(false);
+    setEditingEvaluation(null);
+    setSubmittingEvaluation(null);
 
     showNotification(
       "Demo performance evaluation data was reset successfully.",
       "info",
+    );
+  }
+
+  function handleCreateEvaluation(newEvaluation) {
+    setEvaluationList((currentEvaluations) => [
+      newEvaluation,
+      ...currentEvaluations,
+    ]);
+
+    setIsCreateEvaluationOpen(false);
+
+    showNotification(
+      `${newEvaluation.employeeName}'s performance evaluation was created successfully.`,
+    );
+  }
+
+  function handleUpdateEvaluation(updatedEvaluation) {
+    updateEvaluationInState(updatedEvaluation);
+
+    setEditingEvaluation(null);
+
+    showNotification(
+      `${updatedEvaluation.employeeName}'s performance evaluation was updated successfully.`,
+    );
+  }
+
+  function updateEvaluationInState(updatedEvaluation) {
+    setEvaluationList((currentEvaluations) =>
+      currentEvaluations.map((evaluation) =>
+        evaluation.id === updatedEvaluation.id ? updatedEvaluation : evaluation,
+      ),
+    );
+
+    setSelectedEvaluation((currentSelectedEvaluation) =>
+      currentSelectedEvaluation?.id === updatedEvaluation.id
+        ? updatedEvaluation
+        : currentSelectedEvaluation,
+    );
+  }
+
+  function handleSubmitEvaluation(submittedEvaluation) {
+    updateEvaluationInState(submittedEvaluation);
+
+    setSubmittingEvaluation(null);
+
+    showNotification(
+      `${submittedEvaluation.employeeName}'s performance evaluation was submitted successfully.`,
     );
   }
 
@@ -309,7 +378,7 @@ function PerformancePage() {
             <Button
               variant="contained"
               startIcon={<AddRoundedIcon />}
-              onClick={() => console.log("Create evaluation")}
+              onClick={() => setIsCreateEvaluationOpen(true)}
             >
               Create Evaluation
             </Button>
@@ -390,10 +459,12 @@ function PerformancePage() {
           isOpen={Boolean(selectedEvaluation)}
           onClose={() => setSelectedEvaluation(null)}
           onEdit={(evaluation) => {
-            console.log("Edit evaluation:", evaluation);
+            setSelectedEvaluation(null);
+            setEditingEvaluation(evaluation);
           }}
           onSubmit={(evaluation) => {
-            console.log("Submit evaluation:", evaluation);
+            setSelectedEvaluation(null);
+            setSubmittingEvaluation(evaluation);
           }}
           onAcknowledge={(evaluation) => {
             console.log("Acknowledge evaluation:", evaluation);
@@ -401,6 +472,29 @@ function PerformancePage() {
           onComplete={(evaluation) => {
             console.log("Complete evaluation:", evaluation);
           }}
+        />
+        <CreatePerformanceEvaluationDialog
+          isOpen={isCreateEvaluationOpen}
+          onClose={() => setIsCreateEvaluationOpen(false)}
+          onCreateEvaluation={handleCreateEvaluation}
+          existingEvaluations={evaluationList}
+          users={userList}
+          teams={teamList}
+          dailyPlans={dailyPlanList}
+        />
+
+        <EditPerformanceEvaluationDialog
+          evaluation={editingEvaluation}
+          isOpen={Boolean(editingEvaluation)}
+          onClose={() => setEditingEvaluation(null)}
+          onUpdateEvaluation={handleUpdateEvaluation}
+        />
+
+        <SubmitPerformanceEvaluationDialog
+          evaluation={submittingEvaluation}
+          isOpen={Boolean(submittingEvaluation)}
+          onClose={() => setSubmittingEvaluation(null)}
+          onConfirm={handleSubmitEvaluation}
         />
 
         <AppSnackbar

@@ -75,17 +75,13 @@ function PerformanceEvaluationDetailsDialog({
   }
 
   const canEdit =
-    evaluation.status === "Not Started" ||
-    evaluation.status === "Draft";
+    evaluation.status === "Not Started" || evaluation.status === "Draft";
 
-  const canSubmit =
-    evaluation.status === "Draft";
+  const canSubmit = evaluation.status === "Draft";
 
-  const canAcknowledge =
-    evaluation.status === "Submitted";
+  const canAcknowledge = evaluation.status === "Submitted";
 
-  const canComplete =
-    evaluation.status === "Acknowledged";
+  const canComplete = evaluation.status === "Acknowledged";
 
   return (
     <Dialog
@@ -111,11 +107,7 @@ function PerformanceEvaluationDetailsDialog({
           justifyContent="space-between"
           spacing={2}
         >
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1.75}
-          >
+          <Stack direction="row" alignItems="center" spacing={1.75}>
             <Box
               sx={{
                 display: "flex",
@@ -173,12 +165,7 @@ function PerformanceEvaluationDetailsDialog({
           backgroundColor: "#fcfcfd",
         }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2.5}
-          sx={{ mb: 4 }}
-        >
+        <Stack direction="row" alignItems="center" spacing={2.5} sx={{ mb: 4 }}>
           <Avatar
             sx={{
               width: 72,
@@ -220,9 +207,7 @@ function PerformanceEvaluationDetailsDialog({
               spacing={1}
               sx={{ mt: 1.5 }}
             >
-              <EvaluationStatusBadge
-                status={evaluation.status}
-              />
+              <EvaluationStatusBadge status={evaluation.status} />
 
               <Chip
                 label={evaluation.reviewPeriod}
@@ -231,9 +216,9 @@ function PerformanceEvaluationDetailsDialog({
               />
 
               <Chip
-                label={`${normalizeScore(
-                  evaluation.overallScore,
-                ).toFixed(1)} / 5.0`}
+                label={`${normalizeScore(evaluation.overallScore).toFixed(
+                  1,
+                )} / 5.0`}
                 size="small"
                 color="primary"
                 variant="outlined"
@@ -247,8 +232,7 @@ function PerformanceEvaluationDetailsDialog({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
             gap: 2,
             mb: 4,
           }}
@@ -297,21 +281,17 @@ function PerformanceEvaluationDetailsDialog({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "minmax(260px, 0.8fr) minmax(0, 2fr)",
+            gridTemplateColumns: "minmax(260px, 0.8fr) minmax(0, 2fr)",
             gap: 2,
             mb: 4,
           }}
         >
-          <OverallScoreCard
-            score={evaluation.overallScore}
-          />
+          <OverallScoreCard score={evaluation.overallScore} />
 
           <Box
             sx={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(2, minmax(0, 1fr))",
+              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
               gap: 2,
             }}
           >
@@ -331,8 +311,7 @@ function PerformanceEvaluationDetailsDialog({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(5, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
             gap: 2,
             mb: 4,
           }}
@@ -349,31 +328,24 @@ function PerformanceEvaluationDetailsDialog({
 
           <MetricCard
             label="Average Progress"
-            value={`${normalizePercentage(
-              evaluation.averageDailyProgress,
-            )}%`}
+            value={`${normalizePercentage(evaluation.averageDailyProgress)}%`}
           />
 
           <MetricCard
             label="Task Completion"
-            value={`${normalizePercentage(
-              evaluation.taskCompletionRate,
-            )}%`}
+            value={`${normalizePercentage(evaluation.taskCompletionRate)}%`}
           />
 
           <MetricCard
             label="On-Time Submission"
-            value={`${normalizePercentage(
-              evaluation.onTimeSubmissionRate,
-            )}%`}
+            value={`${normalizePercentage(evaluation.onTimeSubmissionRate)}%`}
           />
         </Box>
 
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(2, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
             gap: 2,
             mb: 4,
           }}
@@ -434,10 +406,7 @@ function PerformanceEvaluationDetailsDialog({
             <TimelineRow
               label="Submitted"
               date={evaluation.submittedAt}
-              isLast={
-                !evaluation.acknowledgedAt &&
-                !evaluation.completedAt
-              }
+              isLast={!evaluation.acknowledgedAt && !evaluation.completedAt}
             />
           )}
 
@@ -468,11 +437,7 @@ function PerformanceEvaluationDetailsDialog({
           justifyContent: "space-between",
         }}
       >
-        <Button
-          color="inherit"
-          variant="outlined"
-          onClick={onClose}
-        >
+        <Button color="inherit" variant="outlined" onClick={onClose}>
           Close
         </Button>
 
@@ -501,12 +466,8 @@ function PerformanceEvaluationDetailsDialog({
             <Button
               variant="contained"
               color="secondary"
-              startIcon={
-                <CheckCircleOutlineRoundedIcon />
-              }
-              onClick={() =>
-                onAcknowledge?.(evaluation)
-              }
+              startIcon={<CheckCircleOutlineRoundedIcon />}
+              onClick={() => onAcknowledge?.(evaluation)}
             >
               Acknowledge
             </Button>
@@ -516,9 +477,7 @@ function PerformanceEvaluationDetailsDialog({
             <Button
               variant="contained"
               color="success"
-              startIcon={
-                <CheckCircleOutlineRoundedIcon />
-              }
+              startIcon={<CheckCircleOutlineRoundedIcon />}
               onClick={() => onComplete?.(evaluation)}
             >
               Complete Evaluation
@@ -544,11 +503,7 @@ function SectionTitle({ children }) {
   );
 }
 
-function InformationCard({
-  icon,
-  label,
-  value,
-}) {
+function InformationCard({ icon, label, value }) {
   return (
     <Stack
       direction="row"
@@ -686,11 +641,7 @@ function OverallScoreCard({ score }) {
   );
 }
 
-function CategoryScoreCard({
-  label,
-  description,
-  score,
-}) {
+function CategoryScoreCard({ label, description, score }) {
   const normalizedScore = normalizeScore(score);
   const percentage = (normalizedScore / 5) * 100;
 
@@ -759,10 +710,7 @@ function CategoryScoreCard({
   );
 }
 
-function MetricCard({
-  label,
-  value,
-}) {
+function MetricCard({ label, value }) {
   return (
     <Box
       sx={{
@@ -796,11 +744,7 @@ function MetricCard({
   );
 }
 
-function FeedbackCard({
-  title,
-  value,
-  emptyText,
-}) {
+function FeedbackCard({ title, value, emptyText }) {
   return (
     <Box
       sx={{
@@ -836,10 +780,7 @@ function FeedbackCard({
   );
 }
 
-function CommentCard({
-  value,
-  emptyText,
-}) {
+function CommentCard({ value, emptyText }) {
   return (
     <Stack
       direction="row"
@@ -874,11 +815,7 @@ function CommentCard({
   );
 }
 
-function TimelineRow({
-  label,
-  date,
-  isLast,
-}) {
+function TimelineRow({ label, date, isLast }) {
   return (
     <Stack
       direction="row"
@@ -914,19 +851,11 @@ function TimelineRow({
 }
 
 function normalizeScore(value) {
-  return Math.min(
-    5,
-    Math.max(0, Number(value) || 0),
-  );
+  return Math.min(5, Math.max(0, Number(value) || 0));
 }
 
 function normalizePercentage(value) {
-  return Math.round(
-    Math.min(
-      100,
-      Math.max(0, Number(value) || 0),
-    ),
-  );
+  return Math.round(Math.min(100, Math.max(0, Number(value) || 0)));
 }
 
 function getScoreLabel(score) {
@@ -958,18 +887,11 @@ function getInitials(name) {
     .split(" ")
     .filter(Boolean);
 
-  const firstInitial =
-    parts[0]?.charAt(0) || "";
+  const firstInitial = parts[0]?.charAt(0) || "";
 
-  const lastInitial =
-    parts.length > 1
-      ? parts[parts.length - 1].charAt(0)
-      : "";
+  const lastInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
 
-  return (
-    `${firstInitial}${lastInitial}`.toUpperCase() ||
-    "U"
-  );
+  return `${firstInitial}${lastInitial}`.toUpperCase() || "U";
 }
 
 function formatDate(dateValue) {
@@ -977,9 +899,7 @@ function formatDate(dateValue) {
     return "Not provided";
   }
 
-  const date = new Date(
-    `${dateValue}T00:00:00`,
-  );
+  const date = new Date(`${dateValue}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
     return "Invalid date";

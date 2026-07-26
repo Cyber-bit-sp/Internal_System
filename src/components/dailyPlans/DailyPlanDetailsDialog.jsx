@@ -25,6 +25,7 @@ import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
 import NotesOutlinedIcon from "@mui/icons-material/NotesOutlined";
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
 
 import DailyPlanStatusBadge from "./DailyPlanStatusBadge";
 
@@ -81,26 +82,19 @@ function DailyPlanDetailsDialog({
   onEdit,
   onSubmit,
   onComplete,
+  onReview,
 }) {
   if (!plan) {
     return null;
   }
 
-  const tasks = Array.isArray(plan.tasks)
-    ? plan.tasks
-    : [];
+  const tasks = Array.isArray(plan.tasks) ? plan.tasks : [];
 
-  const canEdit =
-    plan.status === "Draft" ||
-    plan.status === "In Progress";
+  const canEdit = plan.status === "Draft" || plan.status === "In Progress";
 
-  const canSubmit =
-    plan.status === "Draft" ||
-    plan.status === "In Progress";
+  const canSubmit = plan.status === "Draft" || plan.status === "In Progress";
 
-  const canComplete =
-    plan.status === "Submitted" &&
-    Number(plan.progress) === 100;
+  const canReview = plan.status === "Submitted" || plan.status === "Approved";
 
   return (
     <Dialog
@@ -126,11 +120,7 @@ function DailyPlanDetailsDialog({
           justifyContent="space-between"
           spacing={2}
         >
-          <Stack
-            direction="row"
-            alignItems="center"
-            spacing={1.75}
-          >
+          <Stack direction="row" alignItems="center" spacing={1.75}>
             <Box
               sx={{
                 display: "flex",
@@ -170,10 +160,7 @@ function DailyPlanDetailsDialog({
             </Box>
           </Stack>
 
-          <IconButton
-            aria-label="Close daily plan details"
-            onClick={onClose}
-          >
+          <IconButton aria-label="Close daily plan details" onClick={onClose}>
             <CloseRoundedIcon />
           </IconButton>
         </Stack>
@@ -188,12 +175,7 @@ function DailyPlanDetailsDialog({
           backgroundColor: "#fcfcfd",
         }}
       >
-        <Stack
-          direction="row"
-          alignItems="center"
-          spacing={2.5}
-          sx={{ mb: 4 }}
-        >
+        <Stack direction="row" alignItems="center" spacing={2.5} sx={{ mb: 4 }}>
           <Avatar
             sx={{
               width: 72,
@@ -233,9 +215,7 @@ function DailyPlanDetailsDialog({
               spacing={1}
               sx={{ mt: 1.5 }}
             >
-              <DailyPlanStatusBadge
-                status={plan.status}
-              />
+              <DailyPlanStatusBadge status={plan.status} />
 
               <Chip
                 label={formatDate(plan.planDate)}
@@ -251,8 +231,7 @@ function DailyPlanDetailsDialog({
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns:
-              "repeat(3, minmax(0, 1fr))",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
             gap: 2,
             mb: 4,
           }}
@@ -284,17 +263,13 @@ function DailyPlanDetailsDialog({
           <InformationCard
             icon={<AccessTimeOutlinedIcon />}
             label="Estimated Hours"
-            value={formatHours(
-              plan.totalEstimatedHours,
-            )}
+            value={formatHours(plan.totalEstimatedHours)}
           />
 
           <InformationCard
             icon={<AccessTimeOutlinedIcon />}
             label="Actual Hours"
-            value={formatHours(
-              plan.totalActualHours,
-            )}
+            value={formatHours(plan.totalActualHours)}
           />
         </Box>
 
@@ -424,11 +399,7 @@ function DailyPlanDetailsDialog({
             backgroundColor: "background.paper",
           }}
         >
-          <Stack
-            direction="row"
-            alignItems="flex-start"
-            spacing={1.5}
-          >
+          <Stack direction="row" alignItems="flex-start" spacing={1.5}>
             <NotesOutlinedIcon
               sx={{
                 mt: 0.2,
@@ -459,11 +430,7 @@ function DailyPlanDetailsDialog({
           justifyContent: "space-between",
         }}
       >
-        <Button
-          color="inherit"
-          variant="outlined"
-          onClick={onClose}
-        >
+        <Button color="inherit" variant="outlined" onClick={onClose}>
           Close
         </Button>
 
@@ -488,17 +455,14 @@ function DailyPlanDetailsDialog({
             </Button>
           )}
 
-          {plan.status === "Submitted" && (
+          {canReview && (
             <Button
               variant="contained"
-              color="success"
-              disabled={!canComplete}
-              startIcon={
-                <CheckCircleOutlineRoundedIcon />
-              }
-              onClick={() => onComplete?.(plan)}
+              color={plan.status === "Approved" ? "success" : "primary"}
+              startIcon={<FactCheckOutlinedIcon />}
+              onClick={() => onReview?.(plan)}
             >
-              Complete Plan
+              {plan.status === "Approved" ? "Complete Plan" : "Manager Review"}
             </Button>
           )}
         </Stack>
@@ -521,11 +485,7 @@ function SectionTitle({ children }) {
   );
 }
 
-function InformationCard({
-  icon,
-  label,
-  value,
-}) {
+function InformationCard({ icon, label, value }) {
   return (
     <Stack
       direction="row"
@@ -582,21 +542,13 @@ function InformationCard({
   );
 }
 
-function TaskDetailsCard({
-  task,
-  index,
-}) {
-  const priorityStyle =
-    priorityStyles[task.priority] ||
-    priorityStyles.Medium;
+function TaskDetailsCard({ task, index }) {
+  const priorityStyle = priorityStyles[task.priority] || priorityStyles.Medium;
 
   const statusStyle =
-    taskStatusStyles[task.status] ||
-    taskStatusStyles["Not Started"];
+    taskStatusStyles[task.status] || taskStatusStyles["Not Started"];
 
-  const progress = normalizeProgress(
-    task.progress,
-  );
+  const progress = normalizeProgress(task.progress);
 
   return (
     <Box
@@ -655,8 +607,7 @@ function TaskDetailsCard({
                 lineHeight: 1.6,
               }}
             >
-              {task.description ||
-                "No task description provided."}
+              {task.description || "No task description provided."}
             </Typography>
           </Box>
         </Stack>
@@ -674,10 +625,8 @@ function TaskDetailsCard({
             variant="outlined"
             sx={{
               color: priorityStyle.color,
-              backgroundColor:
-                priorityStyle.backgroundColor,
-              borderColor:
-                priorityStyle.borderColor,
+              backgroundColor: priorityStyle.backgroundColor,
+              borderColor: priorityStyle.borderColor,
               fontWeight: 600,
             }}
           />
@@ -688,8 +637,7 @@ function TaskDetailsCard({
             variant="outlined"
             sx={{
               color: statusStyle.color,
-              backgroundColor:
-                statusStyle.backgroundColor,
+              backgroundColor: statusStyle.backgroundColor,
               borderColor: statusStyle.borderColor,
               fontWeight: 600,
             }}
@@ -700,28 +648,19 @@ function TaskDetailsCard({
       <Box
         sx={{
           display: "grid",
-          gridTemplateColumns:
-            "repeat(3, minmax(0, 1fr))",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
           gap: 2,
           mb: 2,
         }}
       >
         <TaskMetric
           label="Estimated"
-          value={formatHours(
-            task.estimatedHours,
-          )}
+          value={formatHours(task.estimatedHours)}
         />
 
-        <TaskMetric
-          label="Actual"
-          value={formatHours(task.actualHours)}
-        />
+        <TaskMetric label="Actual" value={formatHours(task.actualHours)} />
 
-        <TaskMetric
-          label="Progress"
-          value={`${progress}%`}
-        />
+        <TaskMetric label="Progress" value={`${progress}%`} />
       </Box>
 
       <LinearProgress
@@ -740,10 +679,7 @@ function TaskDetailsCard({
   );
 }
 
-function TaskMetric({
-  label,
-  value,
-}) {
+function TaskMetric({ label, value }) {
   return (
     <Box>
       <Typography
@@ -819,10 +755,7 @@ function EmptyTasksState() {
 }
 
 function normalizeProgress(value) {
-  return Math.min(
-    100,
-    Math.max(0, Number(value) || 0),
-  );
+  return Math.min(100, Math.max(0, Number(value) || 0));
 }
 
 function getInitials(name) {
@@ -830,18 +763,11 @@ function getInitials(name) {
     .split(" ")
     .filter(Boolean);
 
-  const firstInitial =
-    parts[0]?.charAt(0) || "";
+  const firstInitial = parts[0]?.charAt(0) || "";
 
-  const lastInitial =
-    parts.length > 1
-      ? parts[parts.length - 1].charAt(0)
-      : "";
+  const lastInitial = parts.length > 1 ? parts[parts.length - 1].charAt(0) : "";
 
-  return (
-    `${firstInitial}${lastInitial}`.toUpperCase() ||
-    "U"
-  );
+  return `${firstInitial}${lastInitial}`.toUpperCase() || "U";
 }
 
 function formatDate(dateValue) {
@@ -849,9 +775,7 @@ function formatDate(dateValue) {
     return "Not provided";
   }
 
-  const date = new Date(
-    `${dateValue}T00:00:00`,
-  );
+  const date = new Date(`${dateValue}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
     return "Invalid date";
